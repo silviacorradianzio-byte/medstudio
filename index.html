@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedStudio - Preparazione Medicina</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" id="MathJax-script" async></script>
+    <style>
+        :root[data-theme="dark"] {
+            --bg-primary: #0f172a; --bg-secondary: #1e293b; --bg-card: #334155;
+            --text-main: #f8fafc; --text-muted: #94a3b8; --accent: #ff2986;
+            --border: #475569; --success: #22c55e; --warning: #eab308; --danger: #ef4444;
+        }
+        :root[data-theme="light"] {
+            --bg-primary: #f8fafc; --bg-secondary: #ffffff; --bg-card: #f1f5f9;
+            --text-main: #0f172a; --text-muted: #64748b; --accent: #ff2986;
+            --border: #cbd5e1; --success: #16a34a; --warning: #ca8a04; --danger: #dc2626;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-primary); color: var(--text-main); line-height: 1.5; padding-bottom: 70px; }
+        header { background-color: var(--bg-secondary); border-bottom: 1px solid var(--border); padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .logo { font-size: 1.4rem; font-weight: 700; color: var(--accent); display: flex; align-items: center; gap: 0.5rem; }
+        .header-actions { display: flex; gap: 0.75rem; align-items: center; }
+        .btn { background-color: var(--accent); color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.9rem; }
+        .btn:hover { opacity: 0.9; }
+        .btn-secondary { background-color: var(--bg-card); color: var(--text-main); border: 1px solid var(--border); }
+        .welcome-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(15, 23, 42, 0.95); display: flex; justify-content: center; align-items: center; z-index: 1000; padding: 1rem; }
+        .welcome-card { background-color: var(--bg-secondary); border: 2px solid var(--border); border-radius: 16px; padding: 2rem; max-width: 480px; width: 100%; text-align: center; }
+        .user-selector { display: flex; flex-direction: column; gap: 1rem; margin: 1.5rem 0; }
+        .user-option-btn { padding: 1rem; border-radius: 12px; border: none; color: white; font-weight: 700; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
+        .container { max-width: 1200px; margin: 1.5rem auto; padding: 0 1rem; }
+        .nav-tabs { display: flex; gap: 0.5rem; border-bottom: 1px solid var(--border); margin-bottom: 1.5rem; overflow-x: auto; padding-bottom: 0.5rem; }
+        .tab-btn { background: none; border: none; color: var(--text-muted); padding: 0.75rem 1.25rem; font-size: 1rem; font-weight: 600; cursor: pointer; border-radius: 8px 8px 0 0; white-space: nowrap; }
+        .tab-btn.active { color: var(--accent); border-bottom: 3px solid var(--accent); background-color: var(--bg-secondary); }
+        .card { background-color: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; margin-bottom: 1.25rem; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .subject-title { font-size: 1.3rem; margin: 1.5rem 0 1rem 0; color: var(--accent); border-left: 4px solid var(--accent); padding-left: 0.5rem; }
+        .unit-header { font-weight: 700; cursor: pointer; display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background-color: var(--bg-card); border-radius: 8px; border: 1px solid var(--border); user-select: none; }
+        .topic-list { margin-top: 0.5rem; padding-left: 0.5rem; display: block; }
+        .topic-list.collapsed { display: none; }
+        .topic-item { background-color: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 0.5rem; display: flex; flex-direction: column; gap: 0.5rem; }
+        .topic-item.status-done { opacity: 0.7; background-color: rgba(34, 197, 94, 0.05); border-color: var(--success); }
+        .topic-item.status-done .topic-text { text-decoration: line-through; color: var(--text-muted); }
+        @media (min-width: 640px) { .topic-item { flex-direction: row; align-items: center; justify-content: space-between; } }
+        .topic-info { display: flex; align-items: center; gap: 0.75rem; flex: 1; }
+        .topic-controls { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+        .priority-badge { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+        .priority-low { background-color: var(--success); }
+        .priority-med { background-color: var(--warning); }
+        .priority-high { background-color: var(--danger); }
+        select, input[type="text"], input[type="number"] { background-color: var(--bg-primary); color: var(--text-main); border: 1px solid var(--border); padding: 0.4rem 0.6rem; border-radius: 6px; font-size: 0.85rem; }
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+        .metric-card { text-align: center; }
+        .metric-value { font-size: 2rem; font-weight: 700; color: var(--accent); }
+        .metric-label { font-size: 0.85rem; color: var(--text-muted); }
+        .timer-display { font-size: 3.5rem; font-weight: 700; text-align: center; margin: 0.5rem 0; color: var(--accent); }
+        .timer-controls { display: flex; justify-content: center; gap: 0.75rem; margin-top: 1rem; }
+        .flashcard-box { perspective: 1000px; height: 220px; cursor: pointer; margin: 1rem 0; }
+        .flashcard-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.6s; transform-style: preserve-3d; border-radius: 12px; }
+        .flashcard-box.flipped .flashcard-inner { transform: rotateY(180deg); }
+        .flashcard-front, .flashcard-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 12px; border: 1px solid var(--border); padding: 1.5rem; display: flex; flex-direction: column; justify-content: center; align-items: center; background-color: var(--bg-card); }
+        .flashcard-back { transform: rotateY(180deg); background-color: var(--bg-secondary); }
+        .formula-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; }
+    </style>
+</head>
+<body>
+    <div id="welcomeOverlay" class="welcome-overlay" style="display: none;">
+        <div class="welcome-card">
+            <h2>👋 Benvenuta in MedStudio!</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.5rem;">Seleziona il tuo profilo:</p>
+            <div class="user-selector">
+                <button class="user-option-btn" style="background-color: #ff2986;" onclick="selectUserProfile('SILVIA', '#ff2986', 'ok sei SILVIA prinCESS 👑')">
+                    <span>🌸 SILVIA</span> <i class="fa-solid fa-crown"></i>
+                </button>
+                <button class="user-option-btn" style="background-color: #1e98d9;" onclick="selectUserProfile('GIULIA', '#1e98d9', 'ok GIULIA ma stai calma 🧘‍♀️')">
+                    <span>💙 GIULIA</span> <i class="fa-solid fa-bolt"></i>
+                </button>
+                <button class="user-option-btn" style="background-color: #3cc2a7;" onclick="selectUserProfile('ERIKA', '#3cc2a7', 'ok sei ERIKA programmatrice eccellente 💻')">
+                    <span>🌿 ERIKA</span> <i class="fa-solid fa-code"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <header>
+        <div class="logo"><i class="fa-solid fa-stethoscope"></i> <span>MedStudio Pro</span></div>
+        <div class="header-actions">
+            <span id="userBadge" style="font-weight: 700; font-size: 0.85rem; padding: 0.3rem 0.6rem; border-radius: 6px; background-color: var(--bg-card); cursor: pointer;" onclick="showWelcomeModal()">--</span>
+            <button class="btn btn-secondary" onclick="exportData()"><i class="fa-solid fa-download"></i></button>
+            <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()"><i class="fa-solid fa-upload"></i></button>
+            <input type="file" id="importFile" style="display:none;" onchange="importData(event)">
+            <button class="btn btn-secondary" onclick="toggleTheme()" id="themeBtn"><i class="fa-solid fa-moon"></i></button>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="card" style="border-left: 5px solid var(--accent);">
+            <h2 id="welcomeGreeting">Ok, iniziamo a studiare!</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Tieni traccia del tuo syllabus per il semestre filtro.</p>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="card metric-card"><div class="metric-value" id="examCountdown">--</div><div class="metric-label">Giorni all'Esame (10 Dic 2026)</div></div>
+            <div class="card metric-card"><div class="metric-value" id="dailyGoal">--</div><div class="metric-label">Argomenti/Giorno Consigliati</div></div>
+            <div class="card metric-card"><div class="metric-value" id="completionRate">0%</div><div class="metric-label">Avanzamento Syllabus</div></div>
+            <div class="card metric-card"><div class="metric-value" id="studyStreak">0 🔥</div><div class="metric-label">Giorni Consecutivi (Streak)</div></div>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="tab-btn active" onclick="switchTab(this, 'syllabusTab')"><i class="fa-solid fa-book"></i> Syllabus</button>
+            <button class="tab-btn" onclick="switchTab(this, 'timerTab')"><i class="fa-solid fa-stopwatch"></i> Pomodoro</button>
+            <button class="tab-btn" onclick="switchTab(this, 'flashcardsTab')"><i class="fa-solid fa-layer-group"></i> Flashcards</button>
+            <button class="tab-btn" onclick="switchTab(this, 'simulationsTab')"><i class="fa-solid fa-chart-line"></i> Simulazioni</button>
+            <button class="tab-btn" onclick="switchTab(this, 'formulasTab')"><i class="fa-solid fa-square-root-variable"></i> Formulario</button>
+        </div>
+
+        <!-- TAB 1: SYLLABUS -->
+        <div id="syllabusTab" class="tab-content active">
+            <div class="card" style="background-color: rgba(255, 41, 134, 0.08); border-color: var(--accent);">
+                <h3><i class="fa-solid fa-clock-rotate-left"></i> In Scadenza di Ripasso Oggi</h3>
+                <div id="dueTodayList" style="margin-top: 0.5rem;"><p style="color: var(--text-muted); font-size: 0.9rem;">Nessun argomento in scadenza oggi.</p></div>
+            </div>
+            <div class="card" style="border-color: var(--success); background-color: rgba(34, 197, 94, 0.05);">
+                <div class="unit-header" style="background: transparent; border: none; padding: 0;" onclick="toggleUnit('completedSection')">
+                    <h3 style="color: var(--success);"><i class="fa-solid fa-circle-check"></i> Argomenti Completati (<span id="completedCount">0</span>)</h3>
+                    <i class="fa-solid fa-chevron-down" id="completedChevron"></i>
+                </div>
+                <div id="completedContainer" class="topic-list collapsed" style="margin-top: 1rem;">
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">Nessun argomento completato al momento.</p>
+                </div>
+            </div>
+            <div id="syllabusContainer"></div>
+        </div>
+
+        <!-- TAB 2: TIMER -->
+        <div id="timerTab" class="tab-content">
+            <div class="card" style="max-width: 500px; margin: 0 auto;">
+                <h3 style="text-align: center;"><i class="fa-solid fa-brain"></i> Timer Pomodoro Focus</h3>
+                <div style="display: flex; gap: 0.5rem; justify-content: center; margin-top: 1rem; align-items: center;">
+                    <label style="font-size: 0.85rem; color: var(--text-muted);">Durata:</label>
+                    <select id="timerPreset" onchange="setTimerPreset(this.value)">
+                        <option value="15">15 min</option><option value="25" selected>25 min</option><option value="45">45 min</option><option value="60">60 min</option>
+                    </select>
+                    <span style="font-size: 0.85rem; color: var(--text-muted);">oppure:</span>
+                    <input type="number" id="customMinutes" placeholder="min" style="width: 70px;" onchange="setCustomTimer(this.value)">
+                </div>
+                <div class="timer-display" id="timerDisplay">25:00</div>
+                <div style="margin-bottom: 1rem;">
+                    <label style="font-size: 0.85rem; color: var(--text-muted);">Materia della Sessione:</label>
+                    <select id="timerSubjectSelect" style="width: 100%; margin-top: 0.25rem;">
+                        <option value="Biologia">Biologia</option><option value="Chimica">Chimica</option><option value="Fisica">Fisica</option>
+                    </select>
+                </div>
+                <div class="timer-controls">
+                    <button class="btn" id="startTimerBtn" onclick="toggleTimer()"><i class="fa-solid fa-play"></i> Avvia</button>
+                    <button class="btn btn-secondary" onclick="resetTimer()"><i class="fa-solid fa-rotate-right"></i> Reset</button>
+                </div>
+            </div>
+            <div class="card" style="margin-top: 1.5rem;">
+                <h3><i class="fa-solid fa-chart-pie"></i> Ore Effettive Accumulate per Materia</h3>
+                <div style="display: flex; justify-content: space-around; margin-top: 1rem; text-align: center;">
+                    <div><h4>Biologia</h4><p id="timeBio" class="metric-value">0.0h</p></div>
+                    <div><h4>Chimica</h4><p id="timeChem" class="metric-value">0.0h</p></div>
+                    <div><h4>Fisica</h4><p id="timePhys" class="metric-value">0.0h</p></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: FLASHCARDS -->
+        <div id="flashcardsTab" class="tab-content">
+            <div class="card" style="max-width: 650px; margin: 0 auto 1.5rem auto;">
+                <h3><i class="fa-solid fa-plus-circle"></i> Crea Nuova Flashcard per Argomento</h3>
+                <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1rem;">
+                    <div>
+                        <label style="font-size: 0.8rem; color: var(--text-muted);">Seleziona l'Argomento del Syllabus:</label>
+                        <select id="fcTopicSelect" style="width: 100%; margin-top: 0.25rem;"></select>
+                    </div>
+                    <input type="text" id="fcFrontInput" placeholder="Domanda / Concetto (Fronte)">
+                    <input type="text" id="fcBackInput" placeholder="Risposta / Spiegazione (Retro)">
+                    <button class="btn" onclick="addCustomFlashcard()"><i class="fa-solid fa-floppy-disk"></i> Salva Flashcard</button>
+                </div>
+            </div>
+            <div class="card" style="max-width: 650px; margin: 0 auto; text-align: center;">
+                <h3><i class="fa-solid fa-shuffle"></i> Flashcard Active Recall</h3>
+                <div style="margin-top: 0.75rem; display: flex; flex-direction: column; gap: 0.5rem; align-items: center;">
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <label style="font-size: 0.85rem; color: var(--text-muted);">Filtra per:</label>
+                        <select id="fcSourceSelect" onchange="toggleFcTopicFilter()">
+                            <option value="all">Tutti gli Argomenti</option>
+                            <option value="custom">Solo Carte Personalizzate</option>
+                            <option value="specific_topic">Argomento Specifico</option>
+                        </select>
+                    </div>
+                    <div id="specificTopicFilterContainer" style="display: none; width: 100%; max-width: 400px;">
+                        <select id="fcSpecificTopicSelect" style="width: 100%;"></select>
+                    </div>
+                </div>
+                <div class="flashcard-box" id="flashcardBox" onclick="flipCard()">
+                    <div class="flashcard-inner">
+                        <div class="flashcard-front">
+                            <span id="fcSubject" class="metric-label" style="text-transform: uppercase;">ARGOMENTO</span>
+                            <h3 id="fcTopicTitle" style="margin-top: 0.5rem;">Clicca per estrarre una carta</h3>
+                        </div>
+                        <div class="flashcard-back"><p id="fcNotes">Note e spiegazione.</p></div>
+                    </div>
+                </div>
+                <div style="display: flex; justify-content: center; gap: 0.75rem;">
+                    <button class="btn" onclick="drawRandomFlashcard()"><i class="fa-solid fa-arrows-rotate"></i> Estrai Nuova Flashcard</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: SIMULAZIONI -->
+        <div id="simulationsTab" class="tab-content">
+            <div class="card">
+                <h3><i class="fa-solid fa-plus"></i> Registra Nuova Simulazione / Quiz</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; margin-top: 1rem;">
+                    <div><label style="font-size: 0.8rem;">Corrette (+1.5):</label><input type="number" id="simCorrect" value="0" min="0" style="width: 100%;"></div>
+                    <div><label style="font-size: 0.8rem;">Errate (-0.4):</label><input type="number" id="simWrong" value="0" min="0" style="width: 100%;"></div>
+                    <div><label style="font-size: 0.8rem;">Omesse (0.0):</label><input type="number" id="simOmitted" value="0" min="0" style="width: 100%;"></div>
+                    <div style="display: flex; align-items: flex-end;"><button class="btn" style="width: 100%;" onclick="addSimulation()"><i class="fa-solid fa-floppy-disk"></i> Salva Risultato</button></div>
+                </div>
+            </div>
+            <div class="card">
+                <h3><i class="fa-solid fa-list-check"></i> Storico Simulazioni</h3>
+                <div id="simulationsHistory" style="margin-top: 1rem;"><p style="color: var(--text-muted); font-size: 0.9rem;">Nessuna simulazione ancora registrata.</p></div>
+            </div>
+        </div>
+
+        <!-- TAB 5: FORMULARIO -->
+        <div id="formulasTab" class="tab-content">
+            <div class="formula-grid">
+                <div class="card"><h4 style="color: var(--accent);">Fisica: Cinematica & Dinamica</h4><p><b>Velocità:</b> $v = \frac{\Delta s}{\Delta t}$</p><p><b>Accelerazione:</b> $a = \frac{\Delta v}{\Delta t}$</p><p><b>Forza:</b> $F = m \cdot a$</p></div>
+                <div class="card"><h4 style="color: var(--accent);">Fisica: Fluidi & Termodinamica</h4><p><b>Pressione:</b> $P = \frac{F}{S}$</p><p><b>Stevino:</b> $P = P_0 + \rho \cdot g \cdot h$</p><p><b>Gas Perfetti:</b> $P \cdot V = n \cdot R \cdot T$</p></div>
+                <div class="card"><h4 style="color: var(--accent);">Chimica: Soluzioni & pH</h4><p><b>Moli:</b> $n = \frac{m}{PM}$</p><p><b>Molarità:</b> $M = \frac{n}{V(L)}$</p><p><b>pH:</b> $pH = -\log_{10}[H^+]$</p></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="syllabus.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
