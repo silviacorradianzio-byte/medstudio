@@ -16,8 +16,15 @@ let appState = {
 };
 
 document.addEventListener("DOMContentLoaded", () => {
+    // Autopulizia della memoria se presente l'URL parametro o vecchia struttura
+    if (window.location.search.includes('reset=1')) {
+        localStorage.removeItem("medstudio_state");
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+    
     loadState();
     initSyllabusData();
+    
     if (!appState.userName) showWelcomeModal();
     else applyUserProfile();
 
@@ -33,8 +40,19 @@ document.addEventListener("DOMContentLoaded", () => {
 function loadState() {
     const saved = localStorage.getItem("medstudio_state");
     if (saved) {
-        try { appState = Object.assign(appState, JSON.parse(saved)); } 
-        catch(e) { console.error(e); }
+        try { 
+            const parsed = JSON.parse(saved);
+            // Verifica se la memoria salvata è valida e basata sui nuovi ID univoci
+            if (parsed.topicsData && Object.keys(parsed.topicsData).some(k => k.startsWith('bio_'))) {
+                appState = Object.assign(appState, parsed); 
+            } else {
+                // Se trova vecchi dati incompatibili che causano "undefined", resetta automaticamente
+                localStorage.removeItem("medstudio_state");
+            }
+        } catch(e) { 
+            console.error(e); 
+            localStorage.removeItem("medstudio_state");
+        }
     }
 }
 
@@ -43,7 +61,9 @@ function saveState() {
     updateDashboard();
 }
 
-function showWelcomeModal() { document.getElementById("welcomeOverlay").style.display = "flex"; }
+function showWelcomeModal() { 
+    document.getElementById("welcomeOverlay").style.display = "flex"; 
+}
 
 function selectUserProfile(name, color, customGreeting) {
     appState.userName = name;
@@ -224,6 +244,8 @@ function populateFlashcardTopicSelectors() {
     const fcSelect = document.getElementById("fcTopicSelect");
     const filterSelect = document.getElementById("fcSpecificTopicSelect");
     
+    if (!fcSelect || !filterSelect) return;
+
     fcSelect.innerHTML = "";
     filterSelect.innerHTML = "";
 
@@ -255,7 +277,9 @@ function populateFlashcardTopicSelectors() {
 function toggleFcTopicFilter() {
     const mode = document.getElementById("fcSourceSelect").value;
     const container = document.getElementById("specificTopicFilterContainer");
-    container.style.display = (mode === 'specific_topic') ? 'block' : 'none';
+    if (container) {
+        container.style.display = (mode === 'specific_topic') ? 'block' : 'none';
+    }
 }
 
 function updateDashboard() {
