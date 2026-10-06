@@ -11,12 +11,18 @@
         :root[data-theme="dark"] {
             --bg-primary: #0f172a; --bg-secondary: #1e293b; --bg-card: #334155;
             --text-main: #f8fafc; --text-muted: #94a3b8; --accent: #ff2986;
-            --border: #475569; --success: #22c55e; --warning: #eab308; --danger: #ef4444;
+            --border: #475569; --success: #22c55e; --warning: #f59e0b; --danger: #ef4444;
+            --status-todo-bg: rgba(148, 163, 184, 0.1);
+            --status-review-bg: rgba(245, 158, 11, 0.12);
+            --status-done-bg: rgba(34, 197, 94, 0.12);
         }
         :root[data-theme="light"] {
             --bg-primary: #f8fafc; --bg-secondary: #ffffff; --bg-card: #f1f5f9;
             --text-main: #0f172a; --text-muted: #64748b; --accent: #ff2986;
-            --border: #cbd5e1; --success: #16a34a; --warning: #ca8a04; --danger: #dc2626;
+            --border: #cbd5e1; --success: #16a34a; --warning: #d97706; --danger: #dc2626;
+            --status-todo-bg: #f1f5f9;
+            --status-review-bg: #fffbeb;
+            --status-done-bg: #f0fdf4;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
         body { background-color: var(--bg-primary); color: var(--text-main); line-height: 1.5; padding-bottom: 70px; }
@@ -26,6 +32,7 @@
         .btn { background-color: var(--accent); color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.9rem; }
         .btn:hover { opacity: 0.9; }
         .btn-secondary { background-color: var(--bg-card); color: var(--text-main); border: 1px solid var(--border); }
+        .btn-sm { padding: 0.3rem 0.6rem; font-size: 0.8rem; border-radius: 6px; }
         .welcome-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(15, 23, 42, 0.95); display: flex; justify-content: center; align-items: center; z-index: 1000; padding: 1rem; }
         .welcome-card { background-color: var(--bg-secondary); border: 2px solid var(--border); border-radius: 16px; padding: 2rem; max-width: 480px; width: 100%; text-align: center; }
         .user-selector { display: flex; flex-direction: column; gap: 1rem; margin: 1.5rem 0; }
@@ -39,19 +46,28 @@
         .tab-content.active { display: block; }
         .subject-title { font-size: 1.3rem; margin: 1.5rem 0 1rem 0; color: var(--accent); border-left: 4px solid var(--accent); padding-left: 0.5rem; }
         .unit-header { font-weight: 700; cursor: pointer; display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background-color: var(--bg-card); border-radius: 8px; border: 1px solid var(--border); user-select: none; }
-        .topic-list { margin-top: 0.5rem; padding-left: 0.5rem; display: block; }
+        .topic-list { margin-top: 0.5rem; padding-left: 0.25rem; }
         .topic-list.collapsed { display: none; }
-        .topic-item { background-color: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 0.5rem; display: flex; flex-direction: column; gap: 0.5rem; }
-        .topic-item.status-done { opacity: 0.7; background-color: rgba(34, 197, 94, 0.05); border-color: var(--success); }
-        .topic-item.status-done .topic-text { text-decoration: line-through; color: var(--text-muted); }
+        
+        /* Nuova Grafica Topic Item */
+        .topic-item { border: 1px solid var(--border); border-radius: 10px; padding: 0.85rem 1.1rem; margin-bottom: 0.6rem; display: flex; flex-direction: column; gap: 0.75rem; background-color: var(--status-todo-bg); transition: all 0.2s ease; }
         @media (min-width: 640px) { .topic-item { flex-direction: row; align-items: center; justify-content: space-between; } }
-        .topic-info { display: flex; align-items: center; gap: 0.75rem; flex: 1; }
-        .topic-controls { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
-        .priority-badge { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
-        .priority-low { background-color: var(--success); }
-        .priority-med { background-color: var(--warning); }
-        .priority-high { background-color: var(--danger); }
-        select, input[type="text"], input[type="number"] { background-color: var(--bg-primary); color: var(--text-main); border: 1px solid var(--border); padding: 0.4rem 0.6rem; border-radius: 6px; font-size: 0.85rem; }
+        
+        .topic-item.status-todo { border-left: 4px solid var(--text-muted); }
+        .topic-item.status-review { background-color: var(--status-review-bg); border-color: var(--warning); border-left: 5px solid var(--warning); box-shadow: 0 2px 8px rgba(245, 158, 11, 0.1); }
+        .topic-item.status-done { background-color: var(--status-done-bg); border-color: var(--success); border-left: 5px solid var(--success); opacity: 0.85; }
+        .topic-item.status-done .topic-text { text-decoration: line-through; color: var(--text-muted); }
+        
+        .topic-info { display: flex; flex-direction: column; gap: 0.2rem; flex: 1; }
+        .topic-meta { font-size: 0.75rem; color: var(--warning); font-weight: 600; display: flex; align-items: center; gap: 0.3rem; }
+        .topic-controls { display: flex; align-items: center; gap: 0.6rem; }
+        
+        /* Badges e Status Selector */
+        .status-badge { padding: 0.35rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer; border: 1px solid transparent; }
+        .badge-todo { background-color: var(--bg-card); color: var(--text-muted); border-color: var(--border); }
+        .badge-review { background-color: rgba(245, 158, 11, 0.2); color: var(--warning); border-color: var(--warning); }
+        .badge-done { background-color: rgba(34, 197, 94, 0.2); color: var(--success); border-color: var(--success); }
+
         .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
         .metric-card { text-align: center; }
         .metric-value { font-size: 2rem; font-weight: 700; color: var(--accent); }
@@ -64,6 +80,13 @@
         .flashcard-front, .flashcard-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 12px; border: 1px solid var(--border); padding: 1.5rem; display: flex; flex-direction: column; justify-content: center; align-items: center; background-color: var(--bg-card); }
         .flashcard-back { transform: rotateY(180deg); background-color: var(--bg-secondary); }
         .formula-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; }
+
+        /* Lock-In Banner */
+        .lock-banner { padding: 0.75rem 1rem; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; font-weight: 600; font-size: 0.9rem; }
+        .lock-active { background-color: rgba(239, 68, 68, 0.15); border: 1px solid var(--danger); color: #fca5a5; }
+        .lock-inactive { background-color: rgba(34, 197, 94, 0.15); border: 1px solid var(--success); color: #86efac; }
+        
+        select, input[type="text"], input[type="number"] { background-color: var(--bg-primary); color: var(--text-main); border: 1px solid var(--border); padding: 0.4rem 0.6rem; border-radius: 6px; font-size: 0.85rem; }
     </style>
 </head>
 <body>
@@ -99,7 +122,7 @@
     <div class="container">
         <div class="card" style="border-left: 5px solid var(--accent);">
             <h2 id="welcomeGreeting">Ok, iniziamo a studiare!</h2>
-            <p style="color: var(--text-muted); font-size: 0.9rem;">Tieni traccia del tuo syllabus per il semestre filtro.</p>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Organizza il tuo percorso per il semestre filtro.</p>
         </div>
 
         <div class="dashboard-grid">
@@ -110,28 +133,43 @@
         </div>
 
         <div class="nav-tabs">
-            <button class="tab-btn active" onclick="switchTab(this, 'syllabusTab')"><i class="fa-solid fa-book"></i> Syllabus</button>
+            <button class="tab-btn active" onclick="switchTab(this, 'agendaTab')"><i class="fa-solid fa-calendar-check"></i> Agenda di Oggi 🔒</button>
+            <button class="tab-btn" onclick="switchTab(this, 'syllabusTab')"><i class="fa-solid fa-book"></i> Syllabus</button>
             <button class="tab-btn" onclick="switchTab(this, 'timerTab')"><i class="fa-solid fa-stopwatch"></i> Pomodoro</button>
             <button class="tab-btn" onclick="switchTab(this, 'flashcardsTab')"><i class="fa-solid fa-layer-group"></i> Flashcards</button>
             <button class="tab-btn" onclick="switchTab(this, 'simulationsTab')"><i class="fa-solid fa-chart-line"></i> Simulazioni</button>
             <button class="tab-btn" onclick="switchTab(this, 'formulasTab')"><i class="fa-solid fa-square-root-variable"></i> Formulario</button>
         </div>
 
-        <!-- TAB 1: SYLLABUS -->
-        <div id="syllabusTab" class="tab-content active">
-            <div class="card" style="background-color: rgba(255, 41, 134, 0.08); border-color: var(--accent);">
-                <h3><i class="fa-solid fa-clock-rotate-left"></i> In Scadenza di Ripasso Oggi</h3>
-                <div id="dueTodayList" style="margin-top: 0.5rem;"><p style="color: var(--text-muted); font-size: 0.9rem;">Nessun argomento in scadenza oggi.</p></div>
+        <!-- TAB 0: AGENDA DI OGGI CON LOCK-IN -->
+        <div id="agendaTab" class="tab-content active">
+            <div id="lockStatusBanner" class="lock-banner lock-inactive">
+                <span><i class="fa-solid fa-lock-open"></i> Programmazione Aperta: puoi aggiungere/modificare gli obiettivi di oggi.</span>
+                <span style="font-size: 0.8rem; opacity: 0.9;">Il blocco scatta alle 8:00 AM</span>
             </div>
-            <div class="card" style="border-color: var(--success); background-color: rgba(34, 197, 94, 0.05);">
-                <div class="unit-header" style="background: transparent; border: none; padding: 0;" onclick="toggleUnit('completedSection')">
-                    <h3 style="color: var(--success);"><i class="fa-solid fa-circle-check"></i> Argomenti Completati (<span id="completedCount">0</span>)</h3>
-                    <i class="fa-solid fa-chevron-down" id="completedChevron"></i>
-                </div>
-                <div id="completedContainer" class="topic-list collapsed" style="margin-top: 1rem;">
-                    <p style="color: var(--text-muted); font-size: 0.9rem;">Nessun argomento completato al momento.</p>
+
+            <!-- Suggerimenti Spaced Repetition -->
+            <div class="card" style="border-color: var(--warning); background-color: var(--status-review-bg);">
+                <h3 style="color: var(--warning);"><i class="fa-solid fa-clock-rotate-left"></i> Consigliati per il Ripasso Oggi (Spaced Repetition)</h3>
+                <div id="spacedRepetitionList" style="margin-top: 0.75rem;">
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">Nessun argomento in scadenza di ripasso oggi. Ottimo!</p>
                 </div>
             </div>
+
+            <!-- Task Programmati per Oggi -->
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h3><i class="fa-solid fa-list-check"></i> Obiettivi Programmati per Oggi</h3>
+                    <span id="agendaProgress" style="font-weight: 700; color: var(--accent);">0/0 Completati</span>
+                </div>
+                <div id="todayTaskList" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">Nessun argomento ancora aggiunto all'Agenda. Vai nella tab <b>Syllabus</b> per pianificare la giornata!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 1: SYLLABUS CON GRAFICA MODERNA -->
+        <div id="syllabusTab" class="tab-content">
             <div id="syllabusContainer"></div>
         </div>
 
@@ -158,6 +196,10 @@
                     <button class="btn" id="startTimerBtn" onclick="toggleTimer()"><i class="fa-solid fa-play"></i> Avvia</button>
                     <button class="btn btn-secondary" onclick="resetTimer()"><i class="fa-solid fa-rotate-right"></i> Reset</button>
                 </div>
+                <div style="display: flex; gap: 0.5rem; justify-content: center; margin-top: 1.25rem;">
+                    <button class="btn btn-secondary btn-sm" onclick="addManualHours(0.5)">+0.5h Manuali</button>
+                    <button class="btn btn-secondary btn-sm" onclick="addManualHours(1.0)">+1.0h Manuali</button>
+                </div>
             </div>
             <div class="card" style="margin-top: 1.5rem;">
                 <h3><i class="fa-solid fa-chart-pie"></i> Ore Effettive Accumulate per Materia</h3>
@@ -172,10 +214,10 @@
         <!-- TAB 3: FLASHCARDS -->
         <div id="flashcardsTab" class="tab-content">
             <div class="card" style="max-width: 650px; margin: 0 auto 1.5rem auto;">
-                <h3><i class="fa-solid fa-plus-circle"></i> Crea Nuova Flashcard per Argomento</h3>
+                <h3><i class="fa-solid fa-plus-circle"></i> Crea Nuova Flashcard</h3>
                 <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1rem;">
                     <div>
-                        <label style="font-size: 0.8rem; color: var(--text-muted);">Seleziona l'Argomento del Syllabus:</label>
+                        <label style="font-size: 0.8rem; color: var(--text-muted);">Seleziona l'Argomento:</label>
                         <select id="fcTopicSelect" style="width: 100%; margin-top: 0.25rem;"></select>
                     </div>
                     <input type="text" id="fcFrontInput" placeholder="Domanda / Concetto (Fronte)">
@@ -204,7 +246,7 @@
                             <span id="fcSubject" class="metric-label" style="text-transform: uppercase;">ARGOMENTO</span>
                             <h3 id="fcTopicTitle" style="margin-top: 0.5rem;">Clicca per estrarre una carta</h3>
                         </div>
-                        <div class="flashcard-back"><p id="fcNotes">Note e spiegazione.</p></div>
+                        <div class="flashcard-back"><p id="fcNotes">Spiegazione della carta.</p></div>
                     </div>
                 </div>
                 <div style="display: flex; justify-content: center; gap: 0.75rem;">
@@ -240,7 +282,7 @@
         </div>
     </div>
 
-  <script>
+    <script>
         const initialSyllabus = {
             "Biologia": [
                 {
@@ -335,7 +377,7 @@
                     unit: "Unità 1 - Struttura dell'atomo, legami chimici e termodinamica dei sistemi aperti",
                     topics: [
                         { id: "chem_1_1", text: "Teoria atomica: protoni, neutroni, elettroni, numeri atomico/massa, isotopi e cenni RMN" },
-                        { id: "chem_1_2", text: "Numeri quantici, orbitali, principio di Pauli, regla di Hund e configurazione elettronica" },
+                        { id: "chem_1_2", text: "Numeri quantici, orbitali, principio di Pauli, regola di Hund e configurazione elettronica" },
                         { id: "chem_1_3", text: "Tavola periodica e proprietà periodiche: raggio atomico, ionizzazione, elettronegatività" },
                         { id: "chem_1_4", text: "Massa molecolare, mole, numero di Avogadro e Unità di Massa Atomica" },
                         { id: "chem_1_5", text: "Legame chimico: covalente (puro/polare/dativo), ionico, metallico e ibridazioni (sp, sp2, sp3)" },
@@ -489,6 +531,8 @@
             userColor: '#ff2986',
             userCustomGreeting: '',
             topicsData: {},
+            todayPlannedTopicIds: [],
+            todayCompletedTopicIds: [],
             timerSeconds: 25 * 60,
             activeSessionDurationMinutes: 25,
             timerRunning: false,
@@ -496,7 +540,7 @@
             studyHours: { "Biologia": 0, "Chimica": 0, "Fisica": 0 },
             simulations: [],
             customFlashcards: [],
-            collapsedUnits: { 'completedSection': true },
+            collapsedUnits: {},
             streak: 0,
             theme: 'dark'
         };
@@ -511,6 +555,7 @@
                 applyUserProfile();
             }
 
+            renderAgenda();
             renderSyllabus();
             populateFlashcardTopicSelectors();
             updateDashboard();
@@ -534,14 +579,19 @@
                     localStorage.removeItem("medstudio_state");
                 }
             }
-            if (!appState.studyHours) {
-                appState.studyHours = { "Biologia": 0, "Chimica": 0, "Fisica": 0 };
-            }
+            if (!appState.studyHours) appState.studyHours = { "Biologia": 0, "Chimica": 0, "Fisica": 0 };
+            if (!appState.todayPlannedTopicIds) appState.todayPlannedTopicIds = [];
+            if (!appState.todayCompletedTopicIds) appState.todayCompletedTopicIds = [];
         }
 
         function saveState() {
             localStorage.setItem("medstudio_state", JSON.stringify(appState));
             updateDashboard();
+        }
+
+        function isLockActive() {
+            const now = new Date();
+            return now.getHours() >= 8;
         }
 
         function showWelcomeModal() { 
@@ -583,8 +633,7 @@
                                 text: tObj.text,
                                 subject: sub,
                                 status: 'todo',
-                                nextReview: null,
-                                notes: ''
+                                nextReview: null
                             };
                         }
                     });
@@ -592,41 +641,122 @@
             }
         }
 
+        function renderAgenda() {
+            const locked = isLockActive();
+            const banner = document.getElementById("lockStatusBanner");
+            if (banner) {
+                if (locked) {
+                    banner.className = "lock-banner lock-active";
+                    banner.innerHTML = `<span><i class="fa-solid fa-lock"></i> Lock-In Attivo (Dopo le 8:00 AM): Gli obiettivi di oggi sono bloccati. Esegui e spunta!</span>`;
+                } else {
+                    banner.className = "lock-banner lock-inactive";
+                    banner.innerHTML = `<span><i class="fa-solid fa-lock-open"></i> Programmazione Aperta: aggiungi/rimuovi obiettivi prima delle 8:00 AM.</span>`;
+                }
+            }
+
+            // Spaced Repetition List
+            const srList = document.getElementById("spacedRepetitionList");
+            if (srList) {
+                const todayStr = new Date().toISOString().split('T')[0];
+                let dueItems = [];
+                
+                for (let id in appState.topicsData) {
+                    const td = appState.topicsData[id];
+                    if (td.status === 'review' && td.nextReview && td.nextReview <= todayStr) {
+                        dueItems.push({ id, ...td });
+                    }
+                }
+
+                if (dueItems.length === 0) {
+                    srList.innerHTML = `<p style="color: var(--text-muted); font-size: 0.9rem;">Nessun argomento in scadenza di ripasso oggi. Ottimo!</p>`;
+                } else {
+                    srList.innerHTML = dueItems.map(item => `
+                        <div style="display: flex; justify-content: space-between; align-items: center; background-color: var(--bg-card); padding: 0.5rem 0.75rem; border-radius: 8px; margin-bottom: 0.4rem; border: 1px solid var(--border);">
+                            <div><b>[${item.subject}]</b> ${item.text}</div>
+                            <button class="btn btn-secondary btn-sm" onclick="addToAgenda('${item.id}')" ${appState.todayPlannedTopicIds.includes(item.id) || locked ? 'disabled' : ''}>
+                                ${appState.todayPlannedTopicIds.includes(item.id) ? 'Già in Agenda' : '+ Aggiungi all\'Agenda'}
+                            </button>
+                        </div>
+                    `).join('');
+                }
+            }
+
+            // Today Task List
+            const todayContainer = document.getElementById("todayTaskList");
+            if (todayContainer) {
+                if (appState.todayPlannedTopicIds.length === 0) {
+                    todayContainer.innerHTML = `<p style="color: var(--text-muted); font-size: 0.9rem;">Nessun argomento aggiunto all'Agenda. Sfoglia il <b>Syllabus</b> per programmare gli obiettivi!</p>`;
+                } else {
+                    todayContainer.innerHTML = appState.todayPlannedTopicIds.map(id => {
+                        const td = appState.topicsData[id] || { text: 'Argomento', subject: 'Generale' };
+                        const isDone = appState.todayCompletedTopicIds.includes(id);
+                        return `
+                            <div style="display: flex; justify-content: space-between; align-items: center; background-color: var(--bg-card); padding: 0.75rem 1rem; border-radius: 10px; border: 1px solid var(--border); ${isDone ? 'opacity: 0.6; text-decoration: line-through;' : ''}">
+                                <div><b>[${td.subject}]</b> ${td.text}</div>
+                                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                    <button class="btn btn-sm" style="background-color: var(--accent);" onclick="startTimerForTopic('${td.subject}')"><i class="fa-solid fa-play"></i> Pomodoro</button>
+                                    <button class="btn btn-sm ${isDone ? 'btn-secondary' : ''}" style="${isDone ? '' : 'background-color: var(--success); color: white;'}" onclick="toggleTodayTaskDone('${id}')">
+                                        ${isDone ? 'Completato ✅' : 'Spunta Fatto'}
+                                    </button>
+                                    ${!locked ? `<button class="btn btn-secondary btn-sm" onclick="removeFromAgenda('${id}')"><i class="fa-solid fa-trash"></i></button>` : ''}
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+            }
+
+            const progElem = document.getElementById("agendaProgress");
+            if (progElem) {
+                progElem.innerText = `${appState.todayCompletedTopicIds.length}/${appState.todayPlannedTopicIds.length} Completati`;
+            }
+        }
+
+        function addToAgenda(topicId) {
+            if (isLockActive()) { alert("L'Agenda è bloccata per oggi (dopo le 8:00 AM)!"); return; }
+            if (!appState.todayPlannedTopicIds.includes(topicId)) {
+                appState.todayPlannedTopicIds.push(topicId);
+                saveState();
+                renderAgenda();
+            }
+        }
+
+        function removeFromAgenda(topicId) {
+            if (isLockActive()) { alert("L'Agenda è bloccata per oggi (dopo le 8:00 AM)!"); return; }
+            appState.todayPlannedTopicIds = appState.todayPlannedTopicIds.filter(id => id !== topicId);
+            appState.todayCompletedTopicIds = appState.todayCompletedTopicIds.filter(id => id !== topicId);
+            saveState();
+            renderAgenda();
+        }
+
+        function toggleTodayTaskDone(topicId) {
+            if (appState.todayCompletedTopicIds.includes(topicId)) {
+                appState.todayCompletedTopicIds = appState.todayCompletedTopicIds.filter(id => id !== topicId);
+            } else {
+                appState.todayCompletedTopicIds.push(topicId);
+            }
+            saveState();
+            renderAgenda();
+        }
+
+        function startTimerForTopic(subject) {
+            const selectElem = document.getElementById("timerSubjectSelect");
+            if (selectElem) selectElem.value = subject;
+            switchTab(null, 'timerTab');
+        }
+
         function toggleUnit(unitKey) {
             appState.collapsedUnits[unitKey] = !appState.collapsedUnits[unitKey];
             saveState();
-            
-            if (unitKey === 'completedSection') {
-                const compContainer = document.getElementById("completedContainer");
-                const chevron = document.getElementById("completedChevron");
-                if (compContainer && chevron) {
-                    if (appState.collapsedUnits[unitKey]) {
-                        compContainer.classList.add("collapsed");
-                        chevron.className = "fa-solid fa-chevron-down";
-                    } else {
-                        compContainer.classList.remove("collapsed");
-                        chevron.className = "fa-solid fa-chevron-up";
-                    }
-                }
-            } else {
-                renderSyllabus();
-            }
+            renderSyllabus();
         }
 
         function renderSyllabus() {
             const container = document.getElementById("syllabusContainer");
             if (!container) return;
             container.innerHTML = "";
-            
-            const dueTodayContainer = document.getElementById("dueTodayList");
-            if (dueTodayContainer) dueTodayContainer.innerHTML = "";
-            let dueTodayCount = 0;
 
-            const completedContainer = document.getElementById("completedContainer");
-            if (completedContainer) completedContainer.innerHTML = "";
-            let completedCount = 0;
-
-            const todayStr = new Date().toISOString().split('T')[0];
+            const locked = isLockActive();
 
             for (let sub in initialSyllabus) {
                 const subTitle = document.createElement("h2");
@@ -651,20 +781,8 @@
 
                     u.topics.forEach(tObj => {
                         const tData = appState.topicsData[tObj.id] || { text: tObj.text, status: 'todo' };
-                        const itemHtml = createTopicItemElement(tObj.id, tData, sub);
-
-                        if (tData.status === 'done') {
-                            completedCount++;
-                            if (completedContainer) completedContainer.appendChild(itemHtml);
-                        } else {
-                            if (tData.nextReview && tData.nextReview <= todayStr && tData.status === 'review') {
-                                dueTodayCount++;
-                                if (dueTodayContainer) {
-                                    dueTodayContainer.innerHTML += `<div style="padding: 0.2rem 0;"><b>[${sub}]</b> ${tData.text}</div>`;
-                                }
-                            }
-                            topicList.appendChild(itemHtml);
-                        }
+                        const itemHtml = createTopicItemElement(tObj.id, tData, sub, locked);
+                        topicList.appendChild(itemHtml);
                     });
 
                     uCard.appendChild(uHeader);
@@ -673,48 +791,36 @@
                 });
             }
 
-            const countElem = document.getElementById("completedCount");
-            if (countElem) countElem.innerText = completedCount;
-
-            if (completedContainer && completedCount === 0) {
-                completedContainer.innerHTML = `<p style="color: var(--text-muted); font-size: 0.9rem;">Nessun argomento completato al momento.</p>`;
-            }
-
-            if (dueTodayContainer && dueTodayCount === 0) {
-                dueTodayContainer.innerHTML = `<p style="color: var(--text-muted); font-size: 0.9rem;">Nessun argomento in scadenza oggi. Ottimo lavoro!</p>`;
-            }
-
-            if (completedContainer && document.getElementById("completedChevron")) {
-                if (appState.collapsedUnits['completedSection']) {
-                    completedContainer.classList.add("collapsed");
-                    document.getElementById("completedChevron").className = "fa-solid fa-chevron-down";
-                } else {
-                    completedContainer.classList.remove("collapsed");
-                    document.getElementById("completedChevron").className = "fa-solid fa-chevron-up";
-                }
-            }
-
             if (window.MathJax && typeof MathJax.typesetPromise === "function") {
                 MathJax.typesetPromise();
             }
         }
 
-        function createTopicItemElement(topicId, tData, sub) {
+        function createTopicItemElement(topicId, tData, sub, locked) {
             const item = document.createElement("div");
-            item.className = `topic-item ${tData.status === 'done' ? 'status-done' : ''}`;
+            item.className = `topic-item status-${tData.status}`;
+
+            let statusLabel = "⬜ Da Studiare";
+            let badgeClass = "badge-todo";
+            if (tData.status === 'review') { statusLabel = "🔄 In Ripasso"; badgeClass = "badge-review"; }
+            if (tData.status === 'done') { statusLabel = "✅ Completato"; badgeClass = "badge-done"; }
+
+            const inAgenda = appState.todayPlannedTopicIds.includes(topicId);
 
             item.innerHTML = `
                 <div class="topic-info">
                     <span class="topic-text" style="font-size: 0.95rem; font-weight: 500;"><b>[${sub}]</b> ${tData.text}</span>
+                    ${tData.status === 'review' && tData.nextReview ? `<span class="topic-meta"><i class="fa-solid fa-calendar-day"></i> Prossimo ripasso: ${tData.nextReview}</span>` : ''}
                 </div>
                 <div class="topic-controls">
+                    <button class="btn btn-secondary btn-sm" onclick="addToAgenda('${topicId}')" ${inAgenda || locked ? 'disabled' : ''}>
+                        ${inAgenda ? 'In Agenda 📌' : '+ Agenda'}
+                    </button>
                     <select onchange="updateTopicStatus('${topicId}', this.value)">
-                        <option value="todo" ${tData.status==='todo'?'selected':''}>Da Studiare</option>
-                        <option value="review" ${tData.status==='review'?'selected':''}>In Ripasso</option>
-                        <option value="done" ${tData.status==='done'?'selected':''}>Completato ✅</option>
+                        <option value="todo" ${tData.status==='todo'?'selected':''}>⬜ Da Studiare</option>
+                        <option value="review" ${tData.status==='review'?'selected':''}>🔄 In Ripasso</option>
+                        <option value="done" ${tData.status==='done'?'selected':''}>✅ Completato</option>
                     </select>
-
-                    <input type="text" placeholder="Note..." value="${tData.notes || ''}" onchange="updateTopicNotes('${topicId}', this.value)" style="width: 130px;">
                 </div>
             `;
             return item;
@@ -727,16 +833,12 @@
                     const next = new Date();
                     next.setDate(next.getDate() + 3);
                     appState.topicsData[topicId].nextReview = next.toISOString().split('T')[0];
+                } else {
+                    appState.topicsData[topicId].nextReview = null;
                 }
                 saveState();
                 renderSyllabus();
-            }
-        }
-
-        function updateTopicNotes(topicId, notes) {
-            if (appState.topicsData[topicId]) {
-                appState.topicsData[topicId].notes = notes;
-                saveState();
+                renderAgenda();
             }
         }
 
@@ -869,7 +971,7 @@
                         updateStudyHoursDisplay();
                         saveState();
                         resetTimer();
-                        alert(`Sessione di ${minsDone} min completata per ${selectedSub}! Aggiunte ${hoursToAdd.toFixed(1)} ore.`);
+                        alert(`Sessione completata per ${selectedSub}! Aggiunte ${hoursToAdd.toFixed(1)} ore.`);
                     }
                     updateTimerDisplay();
                 }, 1000);
@@ -930,7 +1032,7 @@
 
             frontInp.value = "";
             backInp.value = "";
-            alert("Flashcard aggiunta con successo all'argomento!");
+            alert("Flashcard aggiunta con successo!");
         }
 
         function flipCard() { 
@@ -964,7 +1066,7 @@
                 }
                 const td = appState.topicsData[targetTopicId];
                 if (td) {
-                    pool.push({ title: td.text, notes: td.notes || "Nessuna nota aggiuntiva nel Syllabus.", topic: td.text });
+                    pool.push({ title: td.text, notes: "Ripassa il testo e i concetti chiave di questo argomento.", topic: td.text });
                 }
             } else if (sourceMode === 'all') {
                 if (appState.customFlashcards) {
@@ -974,7 +1076,7 @@
                 }
                 Object.keys(appState.topicsData).forEach(tId => {
                     const td = appState.topicsData[tId];
-                    pool.push({ title: td.text, notes: td.notes || "Nessuna nota aggiuntiva nel Syllabus.", topic: td.text });
+                    pool.push({ title: td.text, notes: "Ripassa il testo e i concetti chiave di questo argomento.", topic: td.text });
                 });
             }
 
@@ -1036,7 +1138,17 @@
             
             const targetTab = document.getElementById(tabId);
             if (targetTab) targetTab.classList.add("active");
-            if (btnElement) btnElement.classList.add("active");
+            
+            if (btnElement) {
+                btnElement.classList.add("active");
+            } else {
+                const buttons = document.querySelectorAll(".tab-btn");
+                buttons.forEach(btn => {
+                    if (btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(tabId)) {
+                        btn.classList.add("active");
+                    }
+                });
+            }
         }
 
         function exportData() {
@@ -1076,5 +1188,4 @@
         }
     </script>
 </body>
-</html>
 </html>
