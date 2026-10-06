@@ -66,11 +66,14 @@ function applyUserProfile() {
 function initSyllabusData() {
     for (let sub in initialSyllabus) {
         initialSyllabus[sub].forEach(u => {
-            u.topics.forEach(t => {
-                if (!appState.topicsData[t]) {
-                    appState.topicsData[t] = {
-                        subject: sub, status: 'todo', priority: 'med',
-                        nextReview: null, notes: ''
+            u.topics.forEach(tObj => {
+                if (!appState.topicsData[tObj.id]) {
+                    appState.topicsData[tObj.id] = {
+                        text: tObj.text,
+                        subject: sub,
+                        status: 'todo',
+                        nextReview: null,
+                        notes: ''
                     };
                 }
             });
@@ -132,9 +135,9 @@ function renderSyllabus() {
             const topicList = document.createElement("div");
             topicList.className = `topic-list ${isCollapsed ? 'collapsed' : ''}`;
 
-            u.topics.forEach(t => {
-                const tData = appState.topicsData[t] || {};
-                const itemHtml = createTopicItemElement(t, tData, sub);
+            u.topics.forEach(tObj => {
+                const tData = appState.topicsData[tObj.id] || { text: tObj.text, status: 'todo' };
+                const itemHtml = createTopicItemElement(tObj.id, tData, sub);
 
                 if (tData.status === 'done') {
                     completedCount++;
@@ -142,7 +145,7 @@ function renderSyllabus() {
                 } else {
                     if (tData.nextReview && tData.nextReview <= todayStr && tData.status === 'review') {
                         dueTodayCount++;
-                        dueTodayContainer.innerHTML += `<div style="padding: 0.2rem 0;"><b>[${sub}]</b> ${t}</div>`;
+                        dueTodayContainer.innerHTML += `<div style="padding: 0.2rem 0;"><b>[${sub}]</b> ${tData.text}</div>`;
                     }
                     topicList.appendChild(itemHtml);
                 }
@@ -176,54 +179,45 @@ function renderSyllabus() {
     }
 }
 
-function createTopicItemElement(t, tData, sub) {
+function createTopicItemElement(topicId, tData, sub) {
     const item = document.createElement("div");
     item.className = `topic-item ${tData.status === 'done' ? 'status-done' : ''}`;
 
     item.innerHTML = `
         <div class="topic-info">
-            <span class="priority-badge priority-${tData.priority || 'med'}"></span>
-            <span class="topic-text" style="font-size: 0.95rem; font-weight: 500;"><b>[${sub}]</b> ${t}</span>
+            <span class="topic-text" style="font-size: 0.95rem; font-weight: 500;"><b>[${sub}]</b> ${tData.text}</span>
         </div>
         <div class="topic-controls">
-            <select onchange="updateTopicPriority('${t}', this.value)">
-                <option value="low" ${tData.priority==='low'?'selected':''}>🟢 Facile</option>
-                <option value="med" ${tData.priority==='med'?'selected':''}>🟡 Medio</option>
-                <option value="high" ${tData.priority==='high'?'selected':''}>🔴 Critico</option>
-            </select>
-
-            <select onchange="updateTopicStatus('${t}', this.value)">
+            <select onchange="updateTopicStatus('${topicId}', this.value)">
                 <option value="todo" ${tData.status==='todo'?'selected':''}>Da Studiare</option>
                 <option value="review" ${tData.status==='review'?'selected':''}>In Ripasso</option>
                 <option value="done" ${tData.status==='done'?'selected':''}>Completato ✅</option>
             </select>
 
-            <input type="text" placeholder="Note..." value="${tData.notes || ''}" onchange="updateTopicNotes('${t}', this.value)" style="width: 130px;">
+            <input type="text" placeholder="Note..." value="${tData.notes || ''}" onchange="updateTopicNotes('${topicId}', this.value)" style="width: 130px;">
         </div>
     `;
     return item;
 }
 
-function updateTopicStatus(topic, status) {
-    appState.topicsData[topic].status = status;
-    if (status === 'review') {
-        const next = new Date();
-        next.setDate(next.getDate() + 3);
-        appState.topicsData[topic].nextReview = next.toISOString().split('T')[0];
+function updateTopicStatus(topicId, status) {
+    if (appState.topicsData[topicId]) {
+        appState.topicsData[topicId].status = status;
+        if (status === 'review') {
+            const next = new Date();
+            next.setDate(next.getDate() + 3);
+            appState.topicsData[topicId].nextReview = next.toISOString().split('T')[0];
+        }
+        saveState();
+        renderSyllabus();
     }
-    saveState();
-    renderSyllabus();
 }
 
-function updateTopicPriority(topic, priority) {
-    appState.topicsData[topic].priority = priority;
-    saveState();
-    renderSyllabus();
-}
-
-function updateTopicNotes(topic, notes) {
-    appState.topicsData[topic].notes = notes;
-    saveState();
+function updateTopicNotes(topicId, notes) {
+    if (appState.topicsData[topicId]) {
+        appState.topicsData[topicId].notes = notes;
+        saveState();
+    }
 }
 
 function populateFlashcardTopicSelectors() {
@@ -240,15 +234,15 @@ function populateFlashcardTopicSelectors() {
         group2.label = sub;
 
         initialSyllabus[sub].forEach(u => {
-            u.topics.forEach(t => {
+            u.topics.forEach(tObj => {
                 let opt1 = document.createElement("option");
-                opt1.value = t;
-                opt1.innerText = t;
+                opt1.value = tObj.id;
+                opt1.innerText = tObj.text;
                 group1.appendChild(opt1);
 
                 let opt2 = document.createElement("option");
-                opt2.value = t;
-                opt2.innerText = t;
+                opt2.value = tObj.id;
+                opt2.innerText = tObj.text;
                 group2.appendChild(opt2);
             });
         });
@@ -353,21 +347,23 @@ function updateStudyHoursDisplay() {
 }
 
 function addCustomFlashcard() {
-    const topic = document.getElementById("fcTopicSelect").value;
+    const topicId = document.getElementById("fcTopicSelect").value;
     const front = document.getElementById("fcFrontInput").value.trim();
     const back = document.getElementById("fcBackInput").value.trim();
 
     if (!front || !back) { alert("Compila sia la domanda che la risposta!"); return; }
 
     if (!appState.customFlashcards) appState.customFlashcards = [];
-    const subject = appState.topicsData[topic] ? appState.topicsData[topic].subject : 'Generale';
+    const tData = appState.topicsData[topicId];
+    const topicText = tData ? tData.text : 'Generale';
+    const subject = tData ? tData.subject : 'Generale';
 
-    appState.customFlashcards.push({ topic, front, back, subject });
+    appState.customFlashcards.push({ topicId, topicText, front, back, subject });
     saveState();
 
     document.getElementById("fcFrontInput").value = "";
     document.getElementById("fcBackInput").value = "";
-    alert("Flashcard aggiunta con successo all'argomento: " + topic);
+    alert("Flashcard aggiunta con successo all'argomento!");
 }
 
 function flipCard() { document.getElementById("flashcardBox").classList.toggle("flipped"); }
@@ -375,33 +371,33 @@ function flipCard() { document.getElementById("flashcardBox").classList.toggle("
 function drawRandomFlashcard() {
     document.getElementById("flashcardBox").classList.remove("flipped");
     const sourceMode = document.getElementById("fcSourceSelect").value;
-    const targetTopic = document.getElementById("fcSpecificTopicSelect").value;
+    const targetTopicId = document.getElementById("fcSpecificTopicSelect").value;
     
     let pool = [];
 
     if (sourceMode === 'custom') {
         if (appState.customFlashcards && appState.customFlashcards.length > 0) {
-            pool = appState.customFlashcards.map(c => ({ title: c.front, notes: c.back, topic: c.topic }));
+            pool = appState.customFlashcards.map(c => ({ title: c.front, notes: c.back, topic: c.topicText }));
         }
     } else if (sourceMode === 'specific_topic') {
         if (appState.customFlashcards) {
-            appState.customFlashcards.filter(c => c.topic === targetTopic).forEach(c => {
-                pool.push({ title: c.front, notes: c.back, topic: c.topic });
+            appState.customFlashcards.filter(c => c.topicId === targetTopicId).forEach(c => {
+                pool.push({ title: c.front, notes: c.back, topic: c.topicText });
             });
         }
-        const td = appState.topicsData[targetTopic];
+        const td = appState.topicsData[targetTopicId];
         if (td) {
-            pool.push({ title: targetTopic, notes: td.notes || "Nessuna nota aggiuntiva nel Syllabus.", topic: targetTopic });
+            pool.push({ title: td.text, notes: td.notes || "Nessuna nota aggiuntiva nel Syllabus.", topic: td.text });
         }
     } else if (sourceMode === 'all') {
         if (appState.customFlashcards) {
             appState.customFlashcards.forEach(c => {
-                pool.push({ title: c.front, notes: c.back, topic: c.topic });
+                pool.push({ title: c.front, notes: c.back, topic: c.topicText });
             });
         }
-        Object.keys(appState.topicsData).forEach(t => {
-            const td = appState.topicsData[t];
-            pool.push({ title: t, notes: td.notes || "Nessuna nota aggiuntiva nel Syllabus.", topic: t });
+        Object.keys(appState.topicsData).forEach(tId => {
+            const td = appState.topicsData[tId];
+            pool.push({ title: td.text, notes: td.notes || "Nessuna nota aggiuntiva nel Syllabus.", topic: td.text });
         });
     }
 
