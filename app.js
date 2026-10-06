@@ -16,7 +16,7 @@ let appState = {
 };
 
 document.addEventListener("DOMContentLoaded", () => {
-    // Autopulizia della memoria se presente l'URL parametro o vecchia struttura
+    // Gestione pulizia della vecchia cache incompatibile
     if (window.location.search.includes('reset=1')) {
         localStorage.removeItem("medstudio_state");
         window.history.replaceState({}, document.title, window.location.pathname);
@@ -25,8 +25,11 @@ document.addEventListener("DOMContentLoaded", () => {
     loadState();
     initSyllabusData();
     
-    if (!appState.userName) showWelcomeModal();
-    else applyUserProfile();
+    if (!appState.userName) {
+        showWelcomeModal();
+    } else {
+        applyUserProfile();
+    }
 
     renderSyllabus();
     populateFlashcardTopicSelectors();
@@ -42,15 +45,15 @@ function loadState() {
     if (saved) {
         try { 
             const parsed = JSON.parse(saved);
-            // Verifica se la memoria salvata è valida e basata sui nuovi ID univoci
+            // Verifica se i dati in memoria sono strutturati con i nuovi ID (es. bio_1_1)
             if (parsed.topicsData && Object.keys(parsed.topicsData).some(k => k.startsWith('bio_'))) {
                 appState = Object.assign(appState, parsed); 
             } else {
-                // Se trova vecchi dati incompatibili che causano "undefined", resetta automaticamente
+                // Se trova la vecchia struttura del syllabus, cancella i dati incompatibili
                 localStorage.removeItem("medstudio_state");
             }
         } catch(e) { 
-            console.error(e); 
+            console.error("Errore caricamento dati:", e); 
             localStorage.removeItem("medstudio_state");
         }
     }
@@ -62,7 +65,8 @@ function saveState() {
 }
 
 function showWelcomeModal() { 
-    document.getElementById("welcomeOverlay").style.display = "flex"; 
+    const overlay = document.getElementById("welcomeOverlay");
+    if (overlay) overlay.style.display = "flex"; 
 }
 
 function selectUserProfile(name, color, customGreeting) {
@@ -71,19 +75,28 @@ function selectUserProfile(name, color, customGreeting) {
     appState.userCustomGreeting = customGreeting;
     saveState();
     applyUserProfile();
-    document.getElementById("welcomeOverlay").style.display = "none";
+    const overlay = document.getElementById("welcomeOverlay");
+    if (overlay) overlay.style.display = "none";
 }
 
 function applyUserProfile() {
     if (appState.userName) {
         document.documentElement.style.setProperty('--accent', appState.userColor);
-        document.getElementById("userBadge").innerText = appState.userName;
-        document.getElementById("userBadge").style.color = appState.userColor;
-        document.getElementById("welcomeGreeting").innerText = appState.userCustomGreeting || `Ok ${appState.userName}, iniziamo!`;
+        const badge = document.getElementById("userBadge");
+        if (badge) {
+            badge.innerText = appState.userName;
+            badge.style.color = appState.userColor;
+        }
+        const greeting = document.getElementById("welcomeGreeting");
+        if (greeting) {
+            greeting.innerText = appState.userCustomGreeting || `Ok ${appState.userName}, iniziamo!`;
+        }
     }
 }
 
 function initSyllabusData() {
+    if (typeof initialSyllabus === "undefined") return;
+    
     for (let sub in initialSyllabus) {
         initialSyllabus[sub].forEach(u => {
             u.topics.forEach(tObj => {
@@ -108,12 +121,14 @@ function toggleUnit(unitKey) {
     if (unitKey === 'completedSection') {
         const compContainer = document.getElementById("completedContainer");
         const chevron = document.getElementById("completedChevron");
-        if (appState.collapsedUnits[unitKey]) {
-            compContainer.classList.add("collapsed");
-            chevron.className = "fa-solid fa-chevron-down";
-        } else {
-            compContainer.classList.remove("collapsed");
-            chevron.className = "fa-solid fa-chevron-up";
+        if (compContainer && chevron) {
+            if (appState.collapsedUnits[unitKey]) {
+                compContainer.classList.add("collapsed");
+                chevron.className = "fa-solid fa-chevron-down";
+            } else {
+                compContainer.classList.remove("collapsed");
+                chevron.className = "fa-solid fa-chevron-up";
+            }
         }
     } else {
         renderSyllabus();
@@ -122,14 +137,15 @@ function toggleUnit(unitKey) {
 
 function renderSyllabus() {
     const container = document.getElementById("syllabusContainer");
+    if (!container) return;
     container.innerHTML = "";
     
     const dueTodayContainer = document.getElementById("dueTodayList");
-    dueTodayContainer.innerHTML = "";
+    if (dueTodayContainer) dueTodayContainer.innerHTML = "";
     let dueTodayCount = 0;
 
     const completedContainer = document.getElementById("completedContainer");
-    completedContainer.innerHTML = "";
+    if (completedContainer) completedContainer.innerHTML = "";
     let completedCount = 0;
 
     const todayStr = new Date().toISOString().split('T')[0];
@@ -161,11 +177,13 @@ function renderSyllabus() {
 
                 if (tData.status === 'done') {
                     completedCount++;
-                    completedContainer.appendChild(itemHtml);
+                    if (completedContainer) completedContainer.appendChild(itemHtml);
                 } else {
                     if (tData.nextReview && tData.nextReview <= todayStr && tData.status === 'review') {
                         dueTodayCount++;
-                        dueTodayContainer.innerHTML += `<div style="padding: 0.2rem 0;"><b>[${sub}]</b> ${tData.text}</div>`;
+                        if (dueTodayContainer) {
+                            dueTodayContainer.innerHTML += `<div style="padding: 0.2rem 0;"><b>[${sub}]</b> ${tData.text}</div>`;
+                        }
                     }
                     topicList.appendChild(itemHtml);
                 }
@@ -177,24 +195,28 @@ function renderSyllabus() {
         });
     }
 
-    document.getElementById("completedCount").innerText = completedCount;
-    if (completedCount === 0) {
+    const countElem = document.getElementById("completedCount");
+    if (countElem) countElem.innerText = completedCount;
+
+    if (completedContainer && completedCount === 0) {
         completedContainer.innerHTML = `<p style="color: var(--text-muted); font-size: 0.9rem;">Nessun argomento completato al momento.</p>`;
     }
 
-    if (dueTodayCount === 0) {
+    if (dueTodayContainer && dueTodayCount === 0) {
         dueTodayContainer.innerHTML = `<p style="color: var(--text-muted); font-size: 0.9rem;">Nessun argomento in scadenza oggi. Ottimo lavoro!</p>`;
     }
 
-    if (appState.collapsedUnits['completedSection']) {
-        completedContainer.classList.add("collapsed");
-        document.getElementById("completedChevron").className = "fa-solid fa-chevron-down";
-    } else {
-        completedContainer.classList.remove("collapsed");
-        document.getElementById("completedChevron").className = "fa-solid fa-chevron-up";
+    if (completedContainer && document.getElementById("completedChevron")) {
+        if (appState.collapsedUnits['completedSection']) {
+            completedContainer.classList.add("collapsed");
+            document.getElementById("completedChevron").className = "fa-solid fa-chevron-down";
+        } else {
+            completedContainer.classList.remove("collapsed");
+            document.getElementById("completedChevron").className = "fa-solid fa-chevron-up";
+        }
     }
 
-    if (window.MathJax) {
+    if (window.MathJax && typeof MathJax.typesetPromise === "function") {
         MathJax.typesetPromise();
     }
 }
@@ -244,7 +266,7 @@ function populateFlashcardTopicSelectors() {
     const fcSelect = document.getElementById("fcTopicSelect");
     const filterSelect = document.getElementById("fcSpecificTopicSelect");
     
-    if (!fcSelect || !filterSelect) return;
+    if (!fcSelect || !filterSelect || typeof initialSyllabus === "undefined") return;
 
     fcSelect.innerHTML = "";
     filterSelect.innerHTML = "";
@@ -275,10 +297,10 @@ function populateFlashcardTopicSelectors() {
 }
 
 function toggleFcTopicFilter() {
-    const mode = document.getElementById("fcSourceSelect").value;
+    const modeSelect = document.getElementById("fcSourceSelect");
     const container = document.getElementById("specificTopicFilterContainer");
-    if (container) {
-        container.style.display = (mode === 'specific_topic') ? 'block' : 'none';
+    if (modeSelect && container) {
+        container.style.display = (modeSelect.value === 'specific_topic') ? 'block' : 'none';
     }
 }
 
@@ -286,7 +308,9 @@ function updateDashboard() {
     const examDate = new Date('2026-12-10');
     const now = new Date();
     const diffDays = Math.ceil((examDate - now) / (1000 * 60 * 60 * 24));
-    document.getElementById("examCountdown").innerText = diffDays > 0 ? diffDays : 0;
+    
+    const countElem = document.getElementById("examCountdown");
+    if (countElem) countElem.innerText = diffDays > 0 ? diffDays : 0;
 
     let total = 0, completed = 0;
     for (let key in appState.topicsData) {
@@ -294,12 +318,18 @@ function updateDashboard() {
         if (appState.topicsData[key].status === 'done') completed++;
     }
     const rate = total > 0 ? Math.round((completed / total) * 100) : 0;
-    document.getElementById("completionRate").innerText = rate + "%";
+    
+    const rateElem = document.getElementById("completionRate");
+    if (rateElem) rateElem.innerText = rate + "%";
 
     const remaining = total - completed;
     const daily = diffDays > 0 ? (remaining / diffDays).toFixed(1) : remaining;
-    document.getElementById("dailyGoal").innerText = daily;
-    document.getElementById("studyStreak").innerText = (appState.streak || 0) + " 🔥";
+    
+    const goalElem = document.getElementById("dailyGoal");
+    if (goalElem) goalElem.innerText = daily;
+    
+    const streakElem = document.getElementById("studyStreak");
+    if (streakElem) streakElem.innerText = (appState.streak || 0) + " 🔥";
 }
 
 function setTimerPreset(mins) {
@@ -307,7 +337,9 @@ function setTimerPreset(mins) {
     const parsedMins = parseInt(mins);
     appState.timerSeconds = parsedMins * 60;
     appState.activeSessionDurationMinutes = parsedMins;
-    document.getElementById("customMinutes").value = "";
+    
+    const customInp = document.getElementById("customMinutes");
+    if (customInp) customInp.value = "";
     updateTimerDisplay();
 }
 
@@ -321,13 +353,14 @@ function setCustomTimer(mins) {
 }
 
 function toggleTimer() {
+    const btn = document.getElementById("startTimerBtn");
     if (appState.timerRunning) {
         clearInterval(appState.timerInterval);
         appState.timerRunning = false;
-        document.getElementById("startTimerBtn").innerHTML = `<i class="fa-solid fa-play"></i> Avvia`;
+        if (btn) btn.innerHTML = `<i class="fa-solid fa-play"></i> Avvia`;
     } else {
         appState.timerRunning = true;
-        document.getElementById("startTimerBtn").innerHTML = `<i class="fa-solid fa-pause"></i> Pausa`;
+        if (btn) btn.innerHTML = `<i class="fa-solid fa-pause"></i> Pausa`;
         
         appState.timerInterval = setInterval(() => {
             appState.timerSeconds--;
@@ -336,7 +369,8 @@ function toggleTimer() {
                 appState.timerRunning = false;
                 alert("Sessione Completata!");
                 
-                const selectedSub = document.getElementById("timerSubjectSelect").value;
+                const selectedSubElem = document.getElementById("timerSubjectSelect");
+                const selectedSub = selectedSubElem ? selectedSubElem.value : "Biologia";
                 const minsDone = appState.activeSessionDurationMinutes || 25;
                 appState.studyHours[selectedSub] = (appState.studyHours[selectedSub] || 0) + (minsDone / 60);
                 updateStudyHoursDisplay();
@@ -353,27 +387,39 @@ function resetTimer() {
     appState.timerRunning = false;
     const currentMins = appState.activeSessionDurationMinutes || 25;
     appState.timerSeconds = currentMins * 60;
-    document.getElementById("startTimerBtn").innerHTML = `<i class="fa-solid fa-play"></i> Avvia`;
+    const btn = document.getElementById("startTimerBtn");
+    if (btn) btn.innerHTML = `<i class="fa-solid fa-play"></i> Avvia`;
     updateTimerDisplay();
 }
 
 function updateTimerDisplay() {
     const mins = Math.floor(appState.timerSeconds / 60);
     const secs = appState.timerSeconds % 60;
-    document.getElementById("timerDisplay").innerText = 
-        `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    const timerElem = document.getElementById("timerDisplay");
+    if (timerElem) {
+        timerElem.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
 }
 
 function updateStudyHoursDisplay() {
-    document.getElementById("timeBio").innerText = (appState.studyHours["Biologia"] || 0).toFixed(1) + "h";
-    document.getElementById("timeChem").innerText = (appState.studyHours["Chimica"] || 0).toFixed(1) + "h";
-    document.getElementById("timePhys").innerText = (appState.studyHours["Fisica"] || 0).toFixed(1) + "h";
+    const bio = document.getElementById("timeBio");
+    const chem = document.getElementById("timeChem");
+    const phys = document.getElementById("timePhys");
+    if (bio) bio.innerText = (appState.studyHours["Biologia"] || 0).toFixed(1) + "h";
+    if (chem) chem.innerText = (appState.studyHours["Chimica"] || 0).toFixed(1) + "h";
+    if (phys) phys.innerText = (appState.studyHours["Fisica"] || 0).toFixed(1) + "h";
 }
 
 function addCustomFlashcard() {
-    const topicId = document.getElementById("fcTopicSelect").value;
-    const front = document.getElementById("fcFrontInput").value.trim();
-    const back = document.getElementById("fcBackInput").value.trim();
+    const topicSelect = document.getElementById("fcTopicSelect");
+    const frontInp = document.getElementById("fcFrontInput");
+    const backInp = document.getElementById("fcBackInput");
+
+    if (!topicSelect || !frontInp || !backInp) return;
+
+    const topicId = topicSelect.value;
+    const front = frontInp.value.trim();
+    const back = backInp.value.trim();
 
     if (!front || !back) { alert("Compila sia la domanda che la risposta!"); return; }
 
@@ -385,17 +431,27 @@ function addCustomFlashcard() {
     appState.customFlashcards.push({ topicId, topicText, front, back, subject });
     saveState();
 
-    document.getElementById("fcFrontInput").value = "";
-    document.getElementById("fcBackInput").value = "";
+    frontInp.value = "";
+    backInp.value = "";
     alert("Flashcard aggiunta con successo all'argomento!");
 }
 
-function flipCard() { document.getElementById("flashcardBox").classList.toggle("flipped"); }
+function flipCard() { 
+    const box = document.getElementById("flashcardBox");
+    if (box) box.classList.toggle("flipped"); 
+}
 
 function drawRandomFlashcard() {
-    document.getElementById("flashcardBox").classList.remove("flipped");
-    const sourceMode = document.getElementById("fcSourceSelect").value;
-    const targetTopicId = document.getElementById("fcSpecificTopicSelect").value;
+    const box = document.getElementById("flashcardBox");
+    if (box) box.classList.remove("flipped");
+    
+    const sourceModeElem = document.getElementById("fcSourceSelect");
+    const targetTopicElem = document.getElementById("fcSpecificTopicSelect");
+    
+    if (!sourceModeElem || !targetTopicElem) return;
+
+    const sourceMode = sourceModeElem.value;
+    const targetTopicId = targetTopicElem.value;
     
     let pool = [];
 
@@ -425,26 +481,34 @@ function drawRandomFlashcard() {
         });
     }
 
+    const fcSub = document.getElementById("fcSubject");
+    const fcTitle = document.getElementById("fcTopicTitle");
+    const fcNotes = document.getElementById("fcNotes");
+
     if (pool.length === 0) {
-        document.getElementById("fcSubject").innerText = "INFO";
-        document.getElementById("fcTopicTitle").innerText = "Nessuna carta trovata!";
-        document.getElementById("fcNotes").innerText = "Non ci sono carte per i filtri selezionati.";
+        if (fcSub) fcSub.innerText = "INFO";
+        if (fcTitle) fcTitle.innerText = "Nessuna carta trovata!";
+        if (fcNotes) fcNotes.innerText = "Non ci sono carte per i filtri selezionati.";
         return;
     }
 
     const card = pool[Math.floor(Math.random() * pool.length)];
 
     setTimeout(() => {
-        document.getElementById("fcSubject").innerText = card.topic || "Generale";
-        document.getElementById("fcTopicTitle").innerText = card.title;
-        document.getElementById("fcNotes").innerText = card.notes;
+        if (fcSub) fcSub.innerText = card.topic || "Generale";
+        if (fcTitle) fcTitle.innerText = card.title;
+        if (fcNotes) fcNotes.innerText = card.notes;
     }, 200);
 }
 
 function addSimulation() {
-    const correct = parseFloat(document.getElementById("simCorrect").value) || 0;
-    const wrong = parseFloat(document.getElementById("simWrong").value) || 0;
-    const omitted = parseFloat(document.getElementById("simOmitted").value) || 0;
+    const correctInp = document.getElementById("simCorrect");
+    const wrongInp = document.getElementById("simWrong");
+    const omittedInp = document.getElementById("simOmitted");
+
+    const correct = parseFloat(correctInp ? correctInp.value : 0) || 0;
+    const wrong = parseFloat(wrongInp ? wrongInp.value : 0) || 0;
+    const omitted = parseFloat(omittedInp ? omittedInp.value : 0) || 0;
 
     const score = (correct * 1.5) - (wrong * 0.4);
     appState.simulations.unshift({ date: new Date().toLocaleDateString('it-IT'), score: score.toFixed(1), correct, wrong, omitted });
@@ -454,6 +518,8 @@ function addSimulation() {
 
 function renderSimulationsHistory() {
     const hist = document.getElementById("simulationsHistory");
+    if (!hist) return;
+    
     if (!appState.simulations || appState.simulations.length === 0) {
         hist.innerHTML = `<p style="color: var(--text-muted); font-size: 0.9rem;">Nessuna simulazione ancora registrata.</p>`;
         return;
@@ -470,7 +536,9 @@ function renderSimulationsHistory() {
 function switchTab(btnElement, tabId) {
     document.querySelectorAll(".tab-content").forEach(el => el.classList.remove("active"));
     document.querySelectorAll(".tab-btn").forEach(el => el.classList.remove("active"));
-    document.getElementById(tabId).classList.add("active");
+    
+    const targetTab = document.getElementById(tabId);
+    if (targetTab) targetTab.classList.add("active");
     if (btnElement) btnElement.classList.add("active");
 }
 
@@ -504,5 +572,8 @@ function toggleTheme() {
 
 function applyTheme() {
     document.documentElement.setAttribute('data-theme', appState.theme);
-    document.getElementById("themeBtn").innerHTML = appState.theme === 'dark' ? `<i class="fa-solid fa-sun"></i>` : `<i class="fa-solid fa-moon"></i>`;
+    const themeBtn = document.getElementById("themeBtn");
+    if (themeBtn) {
+        themeBtn.innerHTML = appState.theme === 'dark' ? `<i class="fa-solid fa-sun"></i>` : `<i class="fa-solid fa-moon"></i>`;
+    }
 }
