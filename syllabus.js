@@ -81,7 +81,7 @@ const initialSyllabus = {
             topics: [
                 { id: "bio_7_1", text: "Ciclo cellulare: cicline, CDK, punto di restrizione, via Rb/E2F e proteina p53" },
                 { id: "bio_7_2", text: "Mitosi: fasi, fuso mitotico, complesso NDC80, APC/C, separazione dei cromatidi e citodieresi" },
-                { id: "bio_7_3", text: "Meiosi: fasi molecolari, crossing-over, cause di aneuploidia e gametogenesi umana" },
+                { id: "bio_7_3", text: "Meiosi: fasi molecolari, crossing-over, cause di aneuploidia e gametogenesi humana" },
                 { id: "bio_7_4", text: "Concetto di cellula staminale" },
                 { id: "bio_7_5", text: "Morte cellulare: necrosi vs apoptosi (vie intrinseca/estrinseca, caspasi e famiglia BCL2)" }
             ]
@@ -99,7 +99,7 @@ const initialSyllabus = {
                 { id: "chem_1_6", text: "Geometria molecolare, interazioni deboli (legame H, van der Waals) ed idrofobiche" },
                 { id: "chem_1_7", text: "Numero di ossidazione, formule di struttura e nomenclatura (ossidi, idrossidi, acidi, sali)" },
                 { id: "chem_1_8", text: "Stati di aggregazione: stato aeriforme (leggi dei gas perfetti), liquido (pressione di vapore) e solido" },
-                { id: "chem_1_9", text: "Termodinamica: entalpia, entropia, energia libera di Gibbs ($\Delta G$) e spontaneità dei processi" }
+                { id: "chem_1_9", text: "Termodinamica: entalpia, entropia, energia libera di Gibbs (delta G) e spontaneità dei processi" }
             ]
         },
         {
@@ -118,13 +118,13 @@ const initialSyllabus = {
                 { id: "chem_3_1", text: "Bilanciamento delle reazioni e conservazione di massa, energia e carica" },
                 { id: "chem_3_2", text: "Cinetica chimica: velocità di reazione, equazione di Arrhenius ed energia di attivazione" },
                 { id: "chem_3_3", text: "Teoria dello stato di transizione e ruolo dei catalizzatori biologici (enzimi)" },
-                { id: "chem_3_4", text: "Equilibrio chimico: legge d'azione di massa, costante $K_c$, principio di Le Chatelier ed equilibrio eterogeneo" }
+                { id: "chem_3_4", text: "Equilibrio chimico: legge d'azione di massa, costante Kc, principio di Le Chatelier ed equilibrio eterogeneo" }
             ]
         },
         {
             unit: "Unità 4 - Acidi, basi, pH, tamponi e reazioni REDOX",
             topics: [
-                { id: "chem_4_1", text: "Teorie acido-base (Arrhenius, Brønsted-Lowry, Lewis), costante di autoprotolisi $K_w$ e scala del pH" },
+                { id: "chem_4_1", text: "Teorie acido-base (Arrhenius, Brønsted-Lowry, Lewis), costante di autoprotolisi Kw e scala del pH" },
                 { id: "chem_4_2", text: "Calcolo del pH per acidi/basi forti e deboli, acidi poliprotici e idrolisi salina" },
                 { id: "chem_4_3", text: "Soluzioni tampone: equazione di Henderson-Hasselbalch ed efficienza tampone" },
                 { id: "chem_4_4", text: "Equilibrio acido-base nei fluidi biologici: tampone bicarbonato, fosfato, proteine e stati patologici (acidosi/alcalosi)" },
@@ -231,7 +231,7 @@ const initialSyllabus = {
             unit: "Unità 7 - Fisica delle radiazioni ed ottica",
             topics: [
                 { id: "phys_7_1", text: "Onde elettromagnetiche e spettro elettromagnetico (da onde radio a raggi gamma)" },
-                { id: "phys_7_2", text: "Quantizzazione dell'energia e fotoni ($E=h\nu$)" },
+                { id: "phys_7_2", text: "Quantizzazione dell'energia e fotoni (E=h*nu)" },
                 { id: "phys_7_3", text: "Assorbimento della radiazione e Legge di Lambert-Beer" },
                 { id: "phys_7_4", text: "Radioattività: decadimenti alfa, beta, gamma, legge del decadimento ed emivita" },
                 { id: "phys_7_5", text: "Radiazioni ionizzanti vs non ionizzanti" },
@@ -239,5 +239,4 @@ const initialSyllabus = {
             ]
         }
     ]
-};
 };
