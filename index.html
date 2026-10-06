@@ -335,7 +335,7 @@
                     unit: "Unità 1 - Struttura dell'atomo, legami chimici e termodinamica dei sistemi aperti",
                     topics: [
                         { id: "chem_1_1", text: "Teoria atomica: protoni, neutroni, elettroni, numeri atomico/massa, isotopi e cenni RMN" },
-                        { id: "chem_1_2", text: "Numeri quantici, orbitali, principio di Pauli, regola di Hund e configurazione elettronica" },
+                        { id: "chem_1_2", text: "Numeri quantici, orbitali, principio di Pauli, regla di Hund e configurazione elettronica" },
                         { id: "chem_1_3", text: "Tavola periodica e proprietà periodiche: raggio atomico, ionizzazione, elettronegatività" },
                         { id: "chem_1_4", text: "Massa molecolare, mole, numero di Avogadro e Unità di Massa Atomica" },
                         { id: "chem_1_5", text: "Legame chimico: covalente (puro/polare/dativo), ionico, metallico e ibridazioni (sp, sp2, sp3)" },
@@ -527,15 +527,15 @@
                     const parsed = JSON.parse(saved);
                     if (parsed.topicsData && Object.keys(parsed.topicsData).some(k => k.startsWith('bio_'))) {
                         appState = Object.assign(appState, parsed); 
-                        if (!appState.studyHours) {
-                            appState.studyHours = { "Biologia": 0, "Chimica": 0, "Fisica": 0 };
-                        }
                     } else {
                         localStorage.removeItem("medstudio_state");
                     }
                 } catch(e) { 
                     localStorage.removeItem("medstudio_state");
                 }
+            }
+            if (!appState.studyHours) {
+                appState.studyHours = { "Biologia": 0, "Chimica": 0, "Fisica": 0 };
             }
         }
 
@@ -830,6 +830,18 @@
             updateTimerDisplay();
         }
 
+        function addManualHours(hoursToAdd) {
+            const selectedSubElem = document.getElementById("timerSubjectSelect");
+            const selectedSub = selectedSubElem ? selectedSubElem.value : "Biologia";
+            
+            if (!appState.studyHours) appState.studyHours = { "Biologia": 0, "Chimica": 0, "Fisica": 0 };
+            
+            appState.studyHours[selectedSub] = (appState.studyHours[selectedSub] || 0) + parseFloat(hoursToAdd);
+            
+            updateStudyHoursDisplay();
+            saveState();
+        }
+
         function toggleTimer() {
             const btn = document.getElementById("startTimerBtn");
             if (appState.timerRunning) {
@@ -846,18 +858,18 @@
                         clearInterval(appState.timerInterval);
                         appState.timerRunning = false;
                         
-                        // Aggiunge le ore alla materia selezionata
                         const selectedSubElem = document.getElementById("timerSubjectSelect");
                         const selectedSub = selectedSubElem ? selectedSubElem.value : "Biologia";
                         const minsDone = appState.activeSessionDurationMinutes || 25;
+                        const hoursToAdd = minsDone / 60;
                         
                         if (!appState.studyHours) appState.studyHours = { "Biologia": 0, "Chimica": 0, "Fisica": 0 };
-                        appState.studyHours[selectedSub] = (appState.studyHours[selectedSub] || 0) + (minsDone / 60);
+                        appState.studyHours[selectedSub] = (appState.studyHours[selectedSub] || 0) + hoursToAdd;
                         
                         updateStudyHoursDisplay();
                         saveState();
                         resetTimer();
-                        alert(`Sessione di ${minsDone} minuti su ${selectedSub} completata! Ore aggiornate.`);
+                        alert(`Sessione di ${minsDone} min completata per ${selectedSub}! Aggiunte ${hoursToAdd.toFixed(1)} ore.`);
                     }
                     updateTimerDisplay();
                 }, 1000);
@@ -1063,9 +1075,6 @@
             }
         }
     </script>
-    
 </body>
 </html>
-</body>
-</body>
 </html>
